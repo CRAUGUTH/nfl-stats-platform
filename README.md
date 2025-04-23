@@ -49,19 +49,13 @@ cd nfl-stats-platform
    cd backend
    python3 -m venv venv
    source venv/bin/activate      # macOS/Linux
-   # .\venv\Scripts\activate   # Windows PowerShell
    ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the Flask server:
+2. Run the Flask server:
    ```bash
    export FLASK_APP=app.py      # macOS/Linux
-   set FLASK_APP=app.py         # Windows PowerShell
    flask run
    ```
-4. The API will be available at: `http://localhost:5000`
+3. The API will be available at: `http://localhost:5000`
 
 ### 3. Frontend (React)
 
@@ -107,10 +101,3 @@ cd nfl-stats-platform
 3. Commit your changes: `git commit -m "Add feature..."`.
 4. Push branch: `git push origin feature/YourFeature`.
 5. Open a Pull Request.
-
----
-
-## 📄 License
-
-This project is licensed under [MIT](LICENSE).
-
