@@ -1,0 +1,5 @@
+# backend/requirements.txt
+Flask>=2.0.0
+Flask-Cors>=3.0.10
+oracledb>=1.4
+python-dotenv>=1.0

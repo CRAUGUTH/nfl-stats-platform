@@ -9,3 +9,10 @@ body {
   margin-bottom: 1rem;
   color: #343a40;
 }
+.table-responsive {
+  overflow-x: auto;
+}
+.form-select {
+  max-height: 200px;
+  overflow-y: auto;
+}
