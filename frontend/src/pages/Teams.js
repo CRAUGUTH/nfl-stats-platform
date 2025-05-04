@@ -26,6 +26,7 @@ export default function Teams() {
   const [sortOrder,   setSortOrder ] = useState('asc');
   const [results,     setResults   ] = useState([]);
   const [searched,    setSearched  ] = useState(false);
+  const [error,       setError     ] = useState('');
 
   // compare mode state
   const [t1,     setT1    ] = useState('');
@@ -38,10 +39,13 @@ export default function Teams() {
 
   const fetchTeams = async () => {
     setSearched(true);
-    if (!searchName.trim()) {
-      // do nothing, keep old results
+    // if no name AND no other filter, show error
+    if (!searchName.trim() && !conference && !division) {
+      setError('Please enter a team name or select at least one filter.');
+      setResults([]);
       return;
     }
+    setError('');
     const qs = new URLSearchParams({
       view,
       searchName,
@@ -52,6 +56,12 @@ export default function Teams() {
     }).toString();
     const res = await fetch(`/api/teams?${qs}`);
     setResults(await res.json());
+  };
+
+  const resetStats = () => {
+    setResults([]);
+    setSearched(false);
+    setError('');
   };
 
   const fetchCompare = async () => {
@@ -71,12 +81,6 @@ export default function Teams() {
     setD2(j2);
   };
 
-  // reset helpers
-  const resetStats = () => {
-    setResults([]);
-    setSearched(false);
-  };
-
   return (
     <>
       <h2 className="page-title">Team Statistics</h2>
@@ -84,26 +88,15 @@ export default function Teams() {
       <div className="btn-group mb-3">
         <button
           className={`btn ${mode==='stats'&&view==='weekly'?'btn-primary':'btn-outline-primary'}`}
-          onClick={()=>{
-            setMode('stats');
-            setView('weekly');
-            resetStats();
-          }}
+          onClick={()=>{setMode('stats');setView('weekly');resetStats();}}
         >Weekly</button>
         <button
           className={`btn ${mode==='stats'&&view==='yearly'?'btn-primary':'btn-outline-primary'}`}
-          onClick={()=>{
-            setMode('stats');
-            setView('yearly');
-            resetStats();
-          }}
+          onClick={()=>{setMode('stats');setView('yearly');resetStats();}}
         >Yearly</button>
         <button
           className={`btn ${mode==='compare'?'btn-primary':'btn-outline-primary'}`}
-          onClick={()=>{
-            setMode('compare');
-            resetStats();
-          }}
+          onClick={()=>{setMode('compare');resetStats();}}
         >Compare</button>
       </div>
 
@@ -125,9 +118,7 @@ export default function Teams() {
                 onChange={e=>setConference(e.target.value)}
               >
                 <option value="">All Conferences</option>
-                {conferences.map(c=>
-                  <option key={c} value={c}>{c}</option>
-                )}
+                {conferences.map(c=><option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="col-md-2">
@@ -137,9 +128,7 @@ export default function Teams() {
                 onChange={e=>setDivision(e.target.value)}
               >
                 <option value="">All Divisions</option>
-                {divisions.map(d=>
-                  <option key={d} value={d}>{d}</option>
-                )}
+                {divisions.map(d=><option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div className="col-md-2">
@@ -149,9 +138,7 @@ export default function Teams() {
                 onChange={e=>setStat(e.target.value)}
               >
                 <option value="">All Stats</option>
-                {statsOptions.map(s=>
-                  <option key={s} value={s}>{s.replace(/_/g,' ')}</option>
-                )}
+                {statsOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}
               </select>
             </div>
             <div className="col-md-1">
@@ -165,23 +152,24 @@ export default function Teams() {
               </select>
             </div>
             <div className="col-md-2">
-              <button
-                className="btn btn-primary w-100"
-                onClick={fetchTeams}
-              >
+              <button className="btn btn-primary w-100" onClick={fetchTeams}>
                 Apply
               </button>
             </div>
           </div>
 
           <div className="card p-3 shadow-sm">
-            {!searched ? (
-              <div className="text-muted">Enter a team name and click “Apply” to search.</div>
+            {error ? (
+              <div className="alert alert-warning m-0">{error}</div>
+            ) : !searched ? (
+              <div className="text-muted">
+                Enter a team name or filters and click “Apply.”
+              </div>
             ) : results.length === 0 ? (
               <div className="alert alert-info m-0">
-                No matching teams found. Please check the spelling.
+                No matching teams found. Please adjust your search or filters.
               </div>
-            ) : view === 'weekly' ? (
+            ) : view==='weekly' ? (
               <WeeklyStats data={results}/>
             ) : (
               <YearlyStats data={results}/>
@@ -216,27 +204,19 @@ export default function Teams() {
                 onChange={e=>setCmpStat(e.target.value)}
               >
                 <option value="">Select Stat</option>
-                {allYearlyStats.map(s=>
-                  <option key={s} value={s}>{s.replace(/_/g,' ')}</option>
-                )}
+                {allYearlyStats.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}
               </select>
             </div>
             <div className="col-md-1">
-              <button
-                className="btn btn-primary w-100"
-                onClick={fetchCompare}
-              >
+              <button className="btn btn-primary w-100" onClick={fetchCompare}>
                 Compare
               </button>
             </div>
           </div>
-
           <div className="card p-3 shadow-sm">
             <ComparisonChart
-              data1={d1}
-              data2={d2}
-              label1={t1}
-              label2={t2}
+              data1={d1} data2={d2}
+              label1={t1} label2={t2}
               statKey={cmpStat}
             />
           </div>

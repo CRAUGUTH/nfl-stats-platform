@@ -24,6 +24,7 @@ export default function Players() {
   const [sortOrder,   setSortOrder ] = useState('asc');
   const [results,     setResults   ] = useState([]);
   const [searched,    setSearched  ] = useState(false);
+  const [error,       setError     ] = useState('');
 
   // compare mode state
   const [p1,     setP1    ] = useState('');
@@ -36,14 +37,24 @@ export default function Players() {
 
   const fetchPlayers = async () => {
     setSearched(true);
-    if (!searchName.trim()) {
+    // if no name AND no position filter, error
+    if (!searchName.trim() && !position) {
+      setError('Please enter a player name or select a position filter.');
+      setResults([]);
       return;
     }
+    setError('');
     const qs = new URLSearchParams({
       view, searchName, position, stat, sortOrder
     }).toString();
     const res = await fetch(`/api/players?${qs}`);
     setResults(await res.json());
+  };
+
+  const resetStats = () => {
+    setResults([]);
+    setSearched(false);
+    setError('');
   };
 
   const fetchCompare = async () => {
@@ -61,11 +72,6 @@ export default function Players() {
     const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
     setD1(j1);
     setD2(j2);
-  };
-
-  const resetStats = () => {
-    setResults([]);
-    setSearched(false);
   };
 
   return (
@@ -105,9 +111,7 @@ export default function Players() {
                 onChange={e=>setPosition(e.target.value)}
               >
                 <option value="">All Positions</option>
-                {positions.map(p=>
-                  <option key={p} value={p}>{p}</option>
-                )}
+                {positions.map(p=><option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div className="col-md-2">
@@ -117,9 +121,7 @@ export default function Players() {
                 onChange={e=>setStat(e.target.value)}
               >
                 <option value="">All Stats</option>
-                {statsOptions.map(s=>
-                  <option key={s} value={s}>{s.replace(/_/g,' ')}</option>
-                )}
+                {statsOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}
               </select>
             </div>
             <div className="col-md-1">
@@ -129,27 +131,26 @@ export default function Players() {
                 onChange={e=>setSortOrder(e.target.value)}
               >
                 <option value="asc">Asc</option>
-                <option value="desc">Desc</option>
+                <option value="desc">Desc</option>)
               </select>
             </div>
             <div className="col-md-2">
-              <button
-                className="btn btn-success w-100"
-                onClick={fetchPlayers}
-              >
+              <button className="btn btn-success w-100" onClick={fetchPlayers}>
                 Apply
               </button>
             </div>
           </div>
 
           <div className="card p-3 shadow-sm">
-            {!searched ? (
+            {error ? (
+              <div className="alert alert-warning m-0">{error}</div>
+            ) : !searched ? (
               <div className="text-muted">
-                Enter a player name and click “Apply” to search.
+                Enter a player name or filter and click “Apply.”
               </div>
             ) : results.length === 0 ? (
               <div className="alert alert-info m-0">
-                No matching players found. Please check the spelling.
+                No matching players found. Please adjust your search or filters.
               </div>
             ) : view==='weekly' ? (
               <WeeklyStats data={results}/>
@@ -184,16 +185,11 @@ export default function Players() {
                 onChange={e=>setCmpStat(e.target.value)}
               >
                 <option value="">Select Stat</option>
-                {allYearlyStatsP.map(s=>
-                  <option key={s} value={s}>{s.replace(/_/g,' ')}</option>
-                )}
+                {allYearlyStatsP.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}
               </select>
             </div>
             <div className="col-md-1">
-              <button
-                className="btn btn-secondary w-100"
-                onClick={fetchCompare}
-              >
+              <button className="btn btn-success w-100" onClick={fetchCompare}>
                 Compare
               </button>
             </div>
